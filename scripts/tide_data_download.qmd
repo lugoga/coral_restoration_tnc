@@ -1,0 +1,67 @@
+---
+title: "Untitled"
+format: html
+---
+
+```{r}
+library(rvest)
+library(dplyr)
+library(purrr)
+library(tidyr)
+library(stringr)
+library(tibble)
+library(lubridate)
+```
+
+```{r}
+
+
+url <- "https://www.tidetime.org/africa/tanzania/zanzibar-calendar.htm"
+
+page <- read_html(url)
+
+# get all tables as tibbles
+tables <- page %>%
+  html_nodes("table") %>%
+  map(~ html_table(.x, fill = TRUE)) %>%
+  map(~ as_tibble(.x, .name_repair = "unique"))
+
+# quick summary to inspect (you can run this to choose the correct table)
+table_summaries <- map_chr(tables, ~ paste(names(.x), collapse = " | "))
+# If you want to see them interactively: table_summaries
+
+# heuristics: prefer table with a "Date" like column; otherwise pick the largest table
+pick_idx <- which(map_lgl(tables, ~ any(str_detect(names(.x), regex("date|day", ignore_case = TRUE)))))
+if (length(pick_idx) == 0) {
+  pick_idx <- which.max(map_int(tables, ncol) * map_int(tables, nrow))
+} else {
+  pick_idx <- pick_idx[1]
+}
+
+tides_raw <- tables[[pick_idx]] %>%
+  rename_with(~ str_trim(.x)) %>%
+  mutate(across(everything(), ~ ifelse(. == "" | . == "–" , NA_character_, as.character(.))))
+
+# a generic tidy attempt: pivot measured columns into rows and extract time and height
+id_cols <- names(tides_raw)[1:1]   # assume first column is the date; adjust if needed
+measure_cols <- setdiff(names(tides_raw), id_cols)
+
+tides_tidy <- tides_raw %>%
+  pivot_longer(cols = all_of(measure_cols), names_to = "event", values_to = "raw") %>%
+  filter(!is.na(raw)) %>%
+  mutate(
+    # try to extract a time like 07:12 or 7:12 and an optional am/pm
+    time_str = str_extract(raw, "\\b\\d{1,2}:\\d{2}\\s*(?:am|pm|AM|PM)?\\b"),
+    # try to extract a numeric height (e.g. "1.2 m" or "0.9")
+    height_m = str_extract(raw, "\\d+\\.?\\d*(?=\\s*m|$)") %>% as.numeric(),
+    date = parse_date_time(!!sym(id_cols[1]), orders = c("dmy", "ymd", "d b Y"), truncated = 3)
+  ) %>%
+  select(date, event, time_str, height_m, raw)
+
+
+```
+
+```{r}
+# return the tidy object
+tides_tidy
+```
