@@ -8,35 +8,19 @@ This repository contains the data, analysis, and field reports from the coral re
 ## Directory Structure
 - `reports/`: Detailed field logs, site assessment summaries, and quarterly progress reports.
 - `graphics/`: High-resolution maps of restoration sites, growth rate charts, and before/after photographic monitoring.
-- `data/`: Raw survey data including benthic cover percentages, fish biomass counts, and water temperature logs.
-- `scripts/`: Python/R scripts used for processing ecological data and generating visualizations.
+- `data/`: Raw survey data including benthic cover percentages, fish biomass counts, and recruits.
+- `scripts/`: Python/R scripts used for processing ecological data and generating reports.
 
 ## Key Objectives
 
 1. **Coral Cover Assessment:** Determining the percentage of live coral cover across restoration sites.
 2. **Biomass Evaluation:** Measuring fish biomass and monitoring invertebrate populations.
 3. **Recruitment Monitoring:** Assessing coral recruits to evaluate natural recovery and restoration success.
-4. **Community Engagement:** Documenting training sessions with local Beach Management Units (BMUs).
 
 ## Methodology
 The project utilizes the **TNC Reef Resilience Framework**. Data collection is performed via:
 *   **Line Intercept Transects (LIT):** To quantify changes in benthic community composition.
 *   **Structure-from-Motion (SfM):** Photogrammetry used to create 3D models of restoration plots (see `/graphics/3d_models`).
-*   **HOBO Sensors:** Continuous thermal monitoring to track coral bleaching risk.
-
-## Visualizations & Insights
-
-Refer to the `graphics/` folder for the following key assets:
-*   **Site Map:** `site_map_mtwara.png` - Spatial distribution of outplanting sites.
-*   **Growth Analysis:** `growth_trends_q1.pdf` - Statistical analysis of coral calcification rates.
-*   **Social Impact:** `community_impact.svg` - Infographic detailing local socio-economic benefits.
-
-## How to Use This Repository
-1.  **Initial Briefing:** Start with `reports/expedition_summary.md` for a high-level overview of the 2026 trip.
-2.  **Environment Setup:** Ensure Python dependencies are installed (see `scripts/requirements.txt` if available).
-3.  **Data Analysis:** Run the analysis pipeline located in `scripts/analyze_reef_health.py` to regenerate the latest figures.
-3.  **Documentation:** All field notes are formatted in Markdown for easy version control tracking.
-
 ---
 **Contact:** Masumbuko Semba - Marine Scientist 
 **Last Updated:** May 2026
