@@ -1,0 +1,743 @@
+---
+title: "Coral Reef Assessment Report: Baseline Ecological Survey Report in Mtwara, Tanzania"
+date: "`r Sys.Date()`"
+format:
+  docx:
+    toc: true
+    number-sections: true
+    highlight-style: github
+    fig-cap-location: bottom
+  pdf:
+    documentclass: scrreprt
+    classoption: [12pt, a4paper]
+    geometry: "left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm"
+    mainfont: "Alegreya"
+    sansfont: "Arial"
+    header-includes: |
+      \usepackage{sectsty}
+      \sectionfont{\color{MidnightBlue}}
+      \subsectionfont{\color{CadetBlue}}
+      \subsubsectionfont{\color{TealBlue}}
+    linestretch: 1.2
+    number-sections: true
+    toc: true
+    toc-depth: 3
+    lof: true
+    colorlinks: true
+    linkcolor: "NavyBlue"
+    citecolor: "NavyBlue"
+    urlcolor: "NavyBlue"
+    keep-tex: false
+    include-in-header:
+      text: |
+        \usepackage[utf8]{inputenc}
+        \pagenumbering{roman}
+        \usepackage{titling}
+        %\usepackage[noxpress]{pdfprivacy}
+        \pretitle{\begin{center}\LARGE\bfseries\includegraphics[width=4cm]{the-nature-conservancy.png}\\[6em]}
+        \posttitle{\end{center}}
+        \usepackage{float}
+        \usepackage{booktabs}
+        \usepackage{draftwatermark}
+        \usepackage{longtable}
+        \usepackage{array}
+        \usepackage{multirow}
+        \usepackage{caption}
+        \usepackage{imakeidx}
+        \makeindex[columns=2, title=Index, intoc=true]
+        \usepackage{fancyhdr}
+        \pagestyle{fancy}
+        \fancyhf{}
+        \fancyhead[L]{\small Coral Reef Assessment}
+        \fancyhead[R]{\small \leftmark}
+        \fancyfoot[C]{\thepage}
+        \SetWatermarkText{DRAFT}
+        \SetWatermarkScale{1}
+        \SetWatermarkLightness{0.95}
+        \renewcommand{\headrulewidth}{0.4pt}
+        \usepackage{setspace}
+        \onehalfspacing
+        \AtBeginDocument{%
+          \ifdefined\CSLReferences
+            \renewenvironment{CSLReferences}[2]%
+              {\begin{description}}%
+              {\end{description}}%
+          \fi}
+    include-after-body:
+      text: |
+        \printindex
+
+bibliography: references.bib
+# csl: apa.csl
+link-citations: true
+
+execute:
+  echo: false
+  warning: false
+  message: false
+
+knitr:
+  opts_chunk:
+    fig.align: "center"
+    out.width: "90%"
+    fig.pos: "H"
+---
+
+
+
+\pagenumbering{arabic}
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(leaflet)
+library(sf)
+library(patchwork)
+require(tidyplots)
+require(scales)
+library(ggspatial)
+library(ggrepel)
+require(gt)
+require(flextable)
+```
+
+
+
+
+```{r}
+mtwara_sites = read_csv('data/TNC Data_Mtwara/locations.csv') |> 
+    # select(sites, lat, lon) |> 
+    mutate(
+        lat = parse_number(lat) + (parse_number(str_extract(lat, "(?<=°)\\d+\\.\\d+")) / 60),
+        lon = parse_number(lon) + (parse_number(str_extract(lon, "(?<=°)\\d+\\.\\d+")) / 60),
+        lat = lat*-1
+    ) |>
+    mutate(
+        lat = if_else(sites == "CHAMBA CHA KATI", -10.313727, lat),
+        lon = if_else(sites == "CHAMBA CHA KATI", 40.374487, lon)
+    ) |>
+    arrange(governance)
+
+mtwara_sites_sf = mtwara_sites |> 
+    st_as_sf(coords = c("lon", "lat"), crs = 4326, remove = FALSE)
+
+
+```
+
+
+
+
+```{r}
+#| eval: false
+
+leaflet( ) |> 
+    addTiles(group = "OSM (Default)") |>
+    addProviderTiles(providers$Esri.WorldImagery, group = "Satellite") |>
+    addProviderTiles(providers$CartoDB.Positron, group = "Street Map") |>
+    addLayersControl(
+        baseGroups = c("OSM (Default)", "Satellite", "Street Map"), 
+        overlayGroups = "Surveyed Sites",
+        options = layersControlOptions(collapsed = FALSE)) |> 
+    addCircleMarkers(
+        data = mtwara_sites_sf,
+        group = "Surveyed Sites",
+        radius = 8,
+        color = "#ffffff",
+        weight = 2,
+        fillColor = ~if_else(governance == "Inside", "#1B7837", "#762A83"),
+        fillOpacity = 0.8,
+        label = ~sites,
+        labelOptions = labelOptions(
+            style = list("font-weight" = "bold", padding = "3px 8px"),
+            textsize = "13px",
+            direction = "auto"
+        ),
+        popup = ~paste0(
+            "<div style='padding:10px; font-family: Arial;'>",
+            "<h2 style='margin:0; color:#2c3e50;'>", sites, "</h2>",
+            "<hr style='margin:5px 0;'>",
+            "<b>MMA:</b> ", governance, "<br>",
+            "<b>Lat:</b> ", round(lat, 5), "<br>",
+            "<b>Lon:</b> ", round(lon, 5),
+            "</div>"
+        )
+    )
+```
+
+
+```{r}
+be_mt = readxl::read_excel('data/TNC Data_Mtwara/master.xlsx', sheet = 'benthic_substrate')
+
+be_mt = be_mt |> 
+  pivot_longer(cols = 14:22, names_to = 'substrate_category', values_to = 'pct_cover')  |> 
+  janitor::clean_names() |> 
+  mutate(across(where(is.character), utf8::utf8_encode))
+
+# be_mt |> distinct(substrate_category) |> pull()
+```
+
+
+```{r}
+be_mt = be_mt |>
+  mutate(
+    major_category = case_when(
+      substrate_category == 'Hard Coral' ~ 'Hard Coral',
+      substrate_category == 'Soft coral' ~ 'Soft Coral',
+      substrate_category == 'Fleshy algae' ~ 'Algae',
+      substrate_category == 'Algal Turf' ~ 'Algae',
+      substrate_category == 'Calcareous' ~ 'Algae',
+      substrate_category == 'Coralline' ~ 'Algae',
+      substrate_category == 'Seagrass' ~ 'Seagrass',
+      substrate_category %in% c('Sand', 'Sponge') ~ 'Rubble/Others'
+    ), .after = substrate_category
+  )
+
+
+```
+
+
+# Introduction
+
+
+# Methods
+## Surveyed Sites and Geographic Coordinates {#sec-mtwara-sites}
+
+The coral reef assessment in Mtwara was conducted across a total of 8 survey sites, strategically selected to represent a range of reef conditions and management regimes within the region. These sites include Chamba Cha Kati, Chamba Cha Kati, Kieti, Matenga, Mmaluko, Rasmo, Viulu, and one additional location. Each site was categorized based on its location relative to Marine Management Areas (MMAs), with some sites located inside MMAs and others outside. This selection allows for comparative analysis of ecological conditions under different management contexts, providing insights into the effectiveness of conservation efforts and the status of coral reef ecosystems in Mtwara.
+
+@tbl-mtwara-geo provides a clear baseline overview of the coral reef assessment sites in Mtwara, listing site names, reef names, management status, and geographic coordinates. The table orients readers to the spatial distribution of locations sampled for benthic substrate, invertebrates, fish biomass, and recruits, and clarifies whether each site is inside or outside established marine management areas. This contextual information supports interpretation of the subsequent ecological analyses across the study region.
+
+```{r}
+#| label: tbl-mtwara-geo
+#| tbl-cap: "Geographic coordinates and management status of coral reef survey sites in Mtwara region."
+#| tbl-pos: H
+
+be_mt |> 
+  distinct(longitude, .keep_all = TRUE) |> 
+  select(Area = site, Reef = location, Management = management,  Latitude = latitude, Longitude = longitude) |> 
+  arrange(Area) |> 
+  flextable::flextable() |> 
+  flextable::merge_v(j = 3)|> 
+  flextable::colformat_double(j = 4:5, digits = 5) |> 
+  flextable::align(align = "left", part = "all")|> 
+  flextable::add_header_row(values = c("", "", "",  "Coordinates", ""), top = TRUE) |> 
+    flextable::merge_at(i = 1, j = 1, part = "header") |> 
+#   flextable::bold(part = "header") |> 
+#   flextable::bg(part = "header", bg = "#004763", i = 2) |> 
+#   flextable::color(part = "header", color = "white", i = 2) |> 
+  flextable::width(j = c(2), width = 1.5, unit = "in") |>
+    flextable::width(j = c(1,3:5), width = 1.1, unit = "in") |> 
+    flextable::fontsize(size = 11, part = "all") |>
+  flextable::font(fontname = "Alegreya", part = "all") |> 
+  flextable::theme_vanilla()
+
+```
+
+
+
+![Distribution of survey site in Mtwara with spatial extent of the Mnazi Bay-Ruvuma Estuary Marine Park (MBREMP) showing the key benthic habitats zonation and proximity to the Ruvuma River mouth.](map_mbremp.png){#fig-map-mbremp fig-pos="H"}
+
+## Survey Design {#sec-surveydesign}
+
+\index{GPS coordinates}
+
+Ecological surveys were conducted between 16--24 March, 2026 following standardised reef health monitoring protocols [@hodgson2006reef; @wilson2020reef]. Each site was assessed using replicated belt transects at two depth strata (shallow: 3--5 m; deep: 8--12 m), with three replicate transects per stratum per site (n = 6 transects per site). Site locations were recorded using GPS and mapped for repeatability in future monitoring rounds.
+
+## Data Processing
+
+### Benthic Substrate Assessment {#sec-benthicmethod}
+
+\index{benthic substrate!point-intercept transect}
+
+Benthic cover was estimated using the Point-Intercept Transect (PIT) method [@english1997survey], where substrate categories were recorded at 0.5 m intervals along each 25 m transect tape, resulting in 50 data points per transect. These observations were classified according to the GCRMN scheme into seven primary categories: hard coral, soft coral, crustose coralline algae (CCA), algae (comprising both turf and macroalgae), rubble, sand, and other biota or substrate (e.g., rock, sponge). Finally, benthic cover estimates were derived by calculating the percentage of total points occupied by each category relative to the total number of points sampled per transect.
+
+$$ 
+C_i = \left( \frac{n_i}{N} \right) \times 100
+$${#eq-benthic-cover}
+
+where $C_i$ is the percentage cover of substrate category $i$, $n_i$ is the number of points where category $i$ was recorded, and $N$ is the total number of points sampled per transect. @eq-benthic-cover was used to calculate the relative abundance of benthic components.
+
+### Fish Biomass Assessment {#sec-fishmethod}
+
+\index{fish biomass!belt transect}
+
+Fish biomass and density were estimated using underwater visual census (UVC) belt transects (50 m x 5 m). All fish species observed within the belt were identified to family level, counted, and their total length estimated to the nearest centimetre. Fish density was calculated as the number of individuals per unit area (individuals per 100 m^2^). @eq-density was used to calculate the density of fish in an area.
+$$ 
+D = \frac{N}{A} \times 100
+$${#eq-density}
+
+where $D$ is density, $N$ is the count of individuals, and $A$ is the sampled area (250 m^2^). @eq-density describes the standard calculation for fish density.
+
+Biomass (kg/ha) was calculated from length-weight relationships derived from FishBase [@froese2023fishbase], applying species-specific allometric parameters. @eq-biomass was used to calculate the biomass of fish per area.
+
+
+$$ 
+W = a \cdot L^{b}
+$${#eq-biomass}
+
+where $W$ is weight (g), $L$ is total length (cm), and $a$ and $b$ are species-specific constants. @eq-biomass is used to estimate individual fish weight for biomass calculations. Fish assemblages were characterised by trophic group (herbivores, piscivores, invertivores, and omnivores).
+
+```{r}
+fish_mt = readxl::read_excel('data/TNC Data_Mtwara/master.xlsx', sheet = 'fish') |> 
+  janitor::clean_names()
+
+fish_density = fish_mt |> 
+  select(site, reef = location,family:x80) |> 
+  mutate(area_m2 = 50*5, .before = family) |> 
+  rowwise() |> 
+  mutate(total_count = sum(c_across(starts_with("x")), na.rm = TRUE)) |> 
+  mutate(density_100m2 = (total_count / area_m2) * 100)
+```
+
+### Coral Recruit Assessment {#sec-recruitmethod}
+
+\index{coral recruits!juvenile density}
+
+Coral recruit density was assessed using 1 m^2^ quadrats placed at 1 m intervals along each transect (25 quadrats per transect). All coral recruits less than or equal to 5 cm maximum diameter were counted and identified to genus level where possible [@babcock1992coral]. Recruit density is expressed as recruits 100 m^-2^ using @eq-recruit-density:
+
+$$ 
+RD = \frac{\sum n_r}{A} \times 100
+$${#eq-recruit-density}
+
+where $RD$ is the recruit density (individuals per 100 m^2^), $n_r$ is the number of recruits counted, and $A$ is the total area sampled (m^2^).
+
+
+```{r}
+recruit_mt = readxl::read_excel('data/TNC Data_Mtwara/master.xlsx', sheet = 'Recruits') |> 
+  janitor::clean_names()
+
+recruit_density = recruit_mt |> 
+  select(site, reef = location,genus:x7_5_10) |> 
+  mutate(area_m2 = 1*1, .before = genus) |> 
+  rowwise() |> 
+  mutate(total_count = sum(c_across(starts_with("x")), na.rm = TRUE)) |> 
+  mutate(density_100m2 = (total_count / area_m2) * 100)
+```
+
+### Invertebrate Assessment {#sec-invertmethod}
+
+\index{invertebrates!survey}
+
+Key indicator invertebrates were quantified using visual belt transects measuring 25 m in length and 2 m in width, covering a total area of 50 m^2^ per replicate. The survey focused on ecologically and commercially significant taxa, specifically sea urchins (*Diadema* spp., *Echinometra* spp., and *Tripneustes* spp.) which serve as primary algal grazers; sea cucumbers (*Holothuria* spp., *Thelenota* spp., and *Actinopyga* spp.) which act as essential nutrient cyclers; and giant clams (*Tridacna* spp.) which are indicators of harvesting pressure. Abundance data were standardized to density per unit area to allow for cross-site comparisons. The density for each taxon was calculated using @eq-invert-density:
+
+$$ 
+ID = \frac{\sum n_i}{A} \times 100
+$${#eq-invert-density}
+
+where $ID$ represents the invertebrate density (individuals per 100 m^2^), $n_i$ is the total count of individuals for a specific taxon, and $A$ is the total area surveyed (m^2^). This standardization ensures that results are comparable with regional Western Indian Ocean (WIO) datasets.
+
+
+```{r}
+invert_mt = readxl::read_excel('data/TNC Data_Mtwara/master.xlsx', sheet = 'Invertebrates') |> 
+  mutate(Location = str_replace_all(Location, "Rasmo/ruvula channel", "Rasmo")) 
+
+invert_density = invert_mt |> 
+  select(Site, reef = Location, Urchin:COTs) |> 
+  pivot_longer(cols = Urchin:COTs, names_to = 'genus', values_to = 'total_count') |> 
+   mutate(area_m2 = 1*1, .before = genus) |> 
+   mutate(total_count = na_if(total_count, 0)) |> 
+  mutate(density_100m2 = (total_count / area_m2) * 100) 
+
+```
+
+## Data Analysis, Visualization and Reporting {#sec-dataanalysis}
+
+All data were analysed in R (v4.5.0; @rcoreteam2024). Site-level metrics are summarised as means +/- standard error (SE). Differences in reef metrics between were assessed using **rstatix** [@rstatix]. Figures were produced using the **ggplot2** [@wickham2016ggplot2] and **tidyplots** [@tidyplots], maps using the **sf** package [@pebesma2018sf] and **QGIS** [@muenchow2017rqgis], while tables were formatted using **kableExtra** [@zhu2024kableextra] and **gt** [@gt]. This report was prepared using **Quarto** within the **Positron IDE**. 
+
+
+
+# Results
+
+## Mtwara {#sec-mtwara}
+
+### Benthic Substrate Composition {#sec-mtwara-substrate}
+
+The benthic community structure in Mtwara reflects a diverse coral reef ecosystem, with substrate composition varying significantly across the surveyed sites. At the site level, hard coral dominance was most pronounced at Chamba Cha Kati (80.8%), Matenga (80.6%), and Kieti (79.4%), as shown in @tbl-substrate-mtwara. In contrast, Mmaluko exhibited a more heterogeneous composition with high coralline algae (43.9%) and sand (26.3%). Fleshy algae were most prevalent at Viulu (26.9%) and Mmaluko (23.8%), while seagrass was notably present only at Rasmo (22.5%) and Mmaluko (11.5%).
+
+```{r}
+#| label: tbl-substrate-mtwara
+#| tbl-cap: Benthic substrate composition across survey locations in Mtwara
+#| tbl-pos: H
+
+be_mt |>
+ select(location, substrate_category, pct_cover) |>
+ filter(pct_cover > 0) |> 
+ group_by(location, substrate_category) |>
+ summarise(pct_cover = median(pct_cover)) |>
+ ungroup() |> 
+  pivot_wider(names_from = location, values_from = pct_cover)  |> 
+  select(Substrate = substrate_category , `Chamba Cha Kati`, Membelwa =`Inner Membelwa`, Matenga, Kieti, Rasmo, Viulu, Nusura, Mmaluko) |>
+  flextable::flextable() |>
+  flextable::set_header_labels(substrate_category = "Substrate") |>
+#   flextable::add_header_row(values = c("", "Percentage Cover"), colwidths = c(1, 8)) |>
+#   flextable::bold(part = "header") |>
+#   flextable::bg(part = "header", bg = "#004763", i = 2) |>
+#   flextable::color(part = "header", color = "white", i = 2)|>
+  flextable::colformat_double(digits = 1, na_str = "-") |>
+  flextable::align(j = 2:4, align = "center", part = "all") |>
+  flextable::bg(j = 2:9, bg = scales::col_quantile(palette = "Reds", domain = c(0,100), na.color = "#cfceceff"), part = "body") |>
+  flextable::width(j = 1:3, width = .90, unit = "in")  |>
+  flextable::width(j = 4:9, width = .55, unit = "in") |> 
+  theme_vanilla()  |>
+  flextable::fontsize(size = 11, part = "all") |>
+  flextable::font(fontname = "Alegreya", part = "all") |> 
+  flextable::padding(padding = 2.5, part = "all") |>
+  flextable::align(j = 2:9, align = "center", part = "all")
+
+```
+
+
+Statistical analysis of the benthic substrate reveals significant differences in reef composition based on management status (@tbl-mtwara-substrate-test). As illustrated in @fig-mtwara-substrate, sites located within Marine Management Areas (MMAs) exhibit significantly higher hard coral cover compared to outside areas ($p < 0.001$), where algae and rubble dominate the landscape. Conversely, sites outside MMAs are characterized by significantly higher levels of algae ($p = 0.001$) and rubble/other substrates ($p = 0.036$). No significant differences were observed for seagrass or soft coral cover between the two management regimes.
+
+
+```{r}
+#| label: fig-mtwara-substrate
+#| fig-cap: "Benthic substrate composition across survey locations in Mtwara region, categorized by management status (Inside vs. Outside MMA)."
+#| fig-pos: H
+
+be_mt |> 
+    mutate(major_category = fct_reorder(major_category, pct_cover, .fun = mean)) |> 
+    tidyplot(y = major_category, x = pct_cover, color = management) |>
+    add_mean_bar(preserve = 'total') |> 
+    add_sem_errorbar() |>
+  # add_test_pvalue(method = "wilcoxon")|> 
+    # add_test_asterisks()|> 
+    # adjust_colors(new_colors =  c("Hard Coral" = "#D73027", "Soft Coral" = "#762A83", "Algae" = "#4575B4", "Seagrass" = "#1B7837", "Rubble/Others" = "#E0E0E0"
+    # )) |> 
+    adjust_size(width = 3, height = 2, unit = "in") |> 
+    adjust_font(fontsize = 10)  |> 
+    adjust_legend_title(title = "Management") |> 
+    adjust_legend_position(position = c(.65,.3)) |>
+    adjust_x_axis_title(title = "Percent Cover") |> 
+    remove_y_axis_title()
+```
+
+Statistical analysis of the benthic substrate reveals significant differences in reef composition based on management status (@tbl-mtwara-substrate-test). As illustrated in @fig-mtwara-substrate, sites located within Marine Management Areas (MMAs) exhibit significantly higher hard coral cover compared to outside areas ($p < 0.001$), where algae and rubble dominate the landscape. Conversely, sites outside MMAs are characterized by significantly higher levels of algae ($p = 0.001$) and rubble/other substrates ($p = 0.036$). No significant differences were observed for seagrass or soft coral cover between the two management regimes.
+
+```{r}
+#| label: tbl-mtwara-substrate-test
+#| tbl-cap: "Results of t-tests comparing percent cover of major benthic substrate categories between sites inside vs. outside marine management areas (MMAs) in Mtwara region."
+#| tbl-pos: H
+#| 
+be_mt |> 
+  group_by(major_category) |> 
+  rstatix::t_test(pct_cover ~ management) |> 
+  rstatix::add_significance() |> 
+  select(major_category, `Within` = n1, `Outside` = n2, statistic, p, p.signif) |> 
+  flextable() |> add_header_row(values = c("", "Sample Size (N)", "Sample Size (N)", "", "", ""), top = TRUE)|> 
+  merge_at(i = 1, j = 2:3, part = "header") |> 
+  set_header_labels(major_category = "Category", statistic = "t-stat", p = "p-value", p.signif = "Sig.") |> 
+  colformat_double(j = "p", digits = 3) |> 
+  colformat_double(j = "statistic", digits = 2) |> 
+  width(j = 1:6, width = .7, unit = "in") |> 
+  fontsize(size = 11 , part = "all") |>
+  flextable::font(fontname = "Alegreya", part = "all") |>
+  theme_vanilla() |> 
+  flextable::padding(padding = 2.5, part = "all") |>
+  align(j = 2:6, align = "center", part = "all")
+
+```
+
+
+### Fish Biomass {#sec-mtwara-fish}
+
+\index{fish biomass!Mtwara}
+
+Fish assemblages across Mtwara reefs showed pronounced spatial variability in density and family composition (@fig-fish-biomass-mtwara-error). **Chamba Cha Kati** (Mnazi Bay) recorded the highest fish densities overall, with Pomacentridae dominating at 254.6 individuals per 100 m^2^ — nearly ten times the densities observed at **Nusura** (26.0) and **Viulu** (22.0) (@tbl-fish-biomass-mtwara). Herbivorous families, including Scaridae and Acanthuridae, were present across all surveyed sites, with Scaridae density peaking at Chamba Cha Kati (11.0 ind. 100 m^-2^). **Viulu** stood out for comparatively higher densities of Siganidae (4.4) and Mullidae (5.0). Families such as Holocentridae and Balistidae were recorded exclusively at Chamba Cha Kati, while the unprotected reefs at Nusura and Viulu maintained higher densities of Lethrinidae and Pomacanthidae. These patterns suggest that although the protected reef at Chamba Cha Kati has greater overall fish biomass and damselfish abundance, the adjacent unprotected reefs continue to support functionally diverse assemblages that are important for broader reef resilience.
+
+
+
+```{r}
+#| eval: true
+#| label: tbl-fish-biomass-mtwara
+#| tbl-cap: "Mean fish density (individuals per 100 m^2^) by family across the surveyed reefs in Mtwara. Values represent the median density observed across all transects per site."
+#| tbl-pos: H
+
+fish_density |> 
+  select(site, reef, family, density_100m2) |> 
+  # mutate(density_100m2 = na_if(density_100m2, 0)) |> 
+filter(density_100m2 > 0) |> 
+  group_by(reef, family) |> 
+  summarise(
+    density_mean = median(density_100m2, na.rm = TRUE)
+    # density_sd = sd(density_100m2, na.rm = TRUE)
+    ) |> 
+  ungroup() |> 
+  pivot_wider(names_from = reef, values_from = density_mean) |> 
+  arrange(desc(`Chamba Cha Kati`)) |> 
+  flextable::flextable() |> 
+  flextable::set_header_labels(family = "Family") |> 
+  flextable::add_header_row(values = c("", "Fish Density (individuals per 100m2)"), colwidths = c(1, 3)) |> 
+  flextable::colformat_double(digits = 1, na_str = "-") |> 
+  flextable::align(j = 2:4, align = "center", part = "all") |> 
+  flextable::bold(part = "header") |> 
+  flextable::bg(part = "header", bg = "#004763", i = 2) |> 
+  flextable::color(part = "header", color = "white", i = 2) |> 
+  flextable::fontsize(size = 11, part = "all") |> 
+  flextable::bg(j = 2:4, bg = scales::col_quantile(palette = "Reds", domain = c(0,300), na.color = "#cfceceff"), part = "body")  |>
+  flextable::width(j = 1:3, width = 1.20, unit = "in")  |>
+  # flextable::width(j = 4:9, width = .55, unit = "in") |> 
+  theme_vanilla()  |>
+  flextable::fontsize(size = 11, part = "all") |>
+  flextable::font(fontname = "Alegreya", part = "all") |> 
+  flextable::padding(padding = 2.5, part = "all") |>
+  flextable::align(j = 2:4, align = "center", part = "all")
+```
+
+
+
+
+```{r}
+#| label: fig-fish-biomass-mtwara-error
+#| fig-cap: "Median fish density (individuals per 100 m^2^ +/- SE) across surveyed reefs in Mtwara. The dashed blue line represents the regional depletion threshold of 20 individuals per 100 m^2^, indicating that most surveyed reefs currently sustain fish populations above critical depletion levels."
+#| tbl-pos: H
+#| 
+
+fish_density |> 
+  tidyplot(x = reef, y = density_100m2, fill = site) |> 
+  add_sem_errorbar(width = .2) |> 
+  add_mean_bar(alpha = 1) |> 
+  adjust_font(fontsize = 10) |>
+  adjust_legend_position(position = c(.6,.4)) |> 
+  adjust_size(width = 2.8, height = 3, unit = 'in') |> 
+  adjust_y_axis(title = 'Fish Density (individuals per 100m^2^', breaks = seq(3,20,3)) |> 
+  remove_x_axis_title() |> 
+  remove_legend_title()
+
+```
+
+
+```{r}
+#| eval: false
+
+fish_density |> 
+  select(site, reef, family, density_100m2) |> 
+  # mutate(density_100m2 = na_if(density_100m2, 0)) |> 
+filter(density_100m2 > 0) |> 
+  group_by(site, reef) |> 
+  summarise(
+    density_mean = mean(density_100m2, na.rm = TRUE),
+    density_sd = sd(density_100m2, na.rm = TRUE) / sqrt(n())
+    ) |> 
+  ungroup() |>
+    ggplot(aes(x = reef, y = density_mean, fill = site))+
+    geom_errorbar(
+      aes(ymin = density_mean - density_sd, ymax = density_mean + density_sd),
+      width = 0.1, linewidth = 0.6
+    ) +
+    geom_col(width = 0.65, colour = "white")  +
+    geom_hline(
+      yintercept = 20, linetype = "dotted",
+      colour = "darkblue", linewidth = 0.4
+    ) +
+    annotate(
+      "text", x = Inf, y = 21.5,
+      label = "Depletion threshold (20 individual/100m2)",
+      hjust = 1.25, size = 3.2, colour = "darkblue"
+    ) +
+    scale_fill_manual(values = c('firebrick', 'steelblue') |> rev(), guide = "none") +
+    scale_y_continuous(
+    name = "Fish Density (ind.~100m2", 
+    breaks = scales::pretty_breaks(n = 5),
+    expand = c(0, 0),
+    limits = c(0, 60)
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(panel.grid.major.x = element_blank(), axis.title.x = element_blank()) 
+
+
+```
+
+### Coral Recruits {#sec-mtwara-recruits}
+
+\index{coral recruits!Mtwara}
+
+Coral recruitment across Mtwara reefs revealed considerable taxonomic diversity and spatial heterogeneity among the eight surveyed sites (@fig-recruit-mtwara-error). At **Chamba Cha Kati**, recruitment was dominated by framework-building genera, with *Acropora* and *Merulina* each reaching densities of 500 ind. 100 m^-2^, and *Alveopora*, *Lobophyllia*, and *Millepora* contributing equally at 300 ind. 100 m^-2^. **Nusura** stood out for its exceptionally high *Porites* recruit density (650 ind. 100 m^-2^), a pattern typical of reefs recovering from disturbance, where massive corals tend to dominate early successional stages. At **Viulu** and **Kieti**, recruitment was broadly distributed across *Alveopora*, *Favia*, and *Stylophora* (400--450 ind. 100 m^-2^), suggesting relatively stable and diverse recruitment assemblages. The occurrence of specialist genera — *Gardineroseris*, *Halomitra*, and *Herpolitha* — exclusively at Chamba Cha Kati, alongside consistently elevated *Acropora* densities at **Kieti** (400 ind. 100 m^-2^), points to meaningful recovery potential across the study region (@tbl-recruit-mtwara).
+
+
+
+```{r}
+#| eval: true
+#| label: tbl-recruit-mtwara
+#| tbl-cap: "Recruit density (individuals per 100 m^2^) by family across the surveyed reefs in Mtwara. Values represent the median density observed across all transects per site."
+#| tbl-pos: H
+
+recruit_density |> 
+  select(site, reef, family = genus, density_100m2) |> 
+  filter(density_100m2 > 0) |> 
+  group_by(reef, family) |> 
+  summarise(
+    density_mean = median(density_100m2, na.rm = TRUE),
+    .groups = "drop"
+  ) |> 
+  pivot_wider(names_from = reef, values_from = density_mean)  |> 
+  select(family, `Chamba Cha Kati`, Membelwa = `Inner Membelwa`, Matenga, Kieti, Rasmo, Viulu, Nusura, Mmaluko) |> 
+  arrange(desc(`Chamba Cha Kati`)) |> 
+  flextable::flextable() |> 
+  flextable::set_header_labels(family = "Family") |> 
+  flextable::add_header_row(values = c("", "Recruit Density (individuals per 100m2)"), colwidths = c(1, 8)) |> 
+  flextable::colformat_double(digits = 0, na_str = "-") |> 
+  flextable::theme_vanilla()|> 
+  flextable::align(j = 2:4, align = "center", part = "all") |> 
+  flextable::bold(part = "header") |> 
+  # flextable::bg(part = "header", bg = "#004763", i = 2) |> 
+  # flextable::color(part = "header", color = "white", i = 2) |> 
+  flextable::bg(j = 2:9, bg = scales::col_quantile(palette = "Reds", domain = c(10,700), na.color = "#cfceceff"), part = "body") |> 
+  # flextable::autofit() |> 
+  flextable::width(j = 1:3, width = .80, unit = "in")  |> 
+  flextable::width(j = 4:9, width = .60, unit = "in")    |>
+  flextable::fontsize(size = 11, part = "all") |>
+  flextable::font(fontname = "Alegreya", part = "all") |> 
+  flextable::padding(padding = 2.5, part = "all") |>
+  flextable::align(j = 2:9, align = "center", part = "all")
+
+```
+
+
+
+
+```{r}
+#| label: fig-recruit-mtwara-error
+#| fig-cap: "Median recruit density (individuals per 100 m^2^ +/- SE) across surveyed reefs in Mtwara."
+#| tbl-pos: H
+#| 
+
+recruit_density |> 
+  select(site, reef, family = genus, density_100m2) |> 
+  tidyplot(y = reef, x = density_100m2) |> 
+  add_sem_errorbar(width = .2) |> 
+  add_mean_bar(alpha = 1) |> 
+  adjust_font(fontsize = 10) |>
+  adjust_size(width = 2.8, height = 2.5, unit = 'in') |> 
+  adjust_x_axis(title = 'Recruit Density (individuals per 100m^2^', breaks = seq(50,400,50)) |> 
+  remove_y_axis_title()
+
+```
+
+### Invertebrate Assemblages {#sec-mtwara-inverts}
+
+\index{invertebrates!Mtwara}
+
+```{r}
+invert_density_restoration = invert_density  |> 
+  mutate(restoration_role = case_when(
+    genus == "Urchin" ~ "Algal Grazer",
+    genus == "Sea Cucumber" ~ "Nutrient Cycler",
+    genus == "Lobster" ~ "Predator",
+    genus == "COTs" ~ "Coral Predator (Threat)",
+    TRUE ~ "General Invertebrate"
+  ))
+```
+
+
+
+Indicator invertebrate densities in Mtwara varied significantly across the eight surveyed reefs (@tbl-invertebrate-mtwara1). **Viulu** exhibited the highest overall densities for several key groups, including sea stars (900 ind. 100 m^-2^), urchins (1,150 ind. 100 m^-2^), and gastropods (800 ind. 100 m^-2^). High densities were also observed at **Rasmo** (650 sea stars) and **Kieti** (600 gastropods). **Nusura**, **Rasmo**, and **Mmaluko** supported the highest recorded densities of sea cucumbers (300 ind. 100 m^-2^). In contrast, **Chamba Cha Kati** and **Membelwa** generally recorded lower invertebrate abundances, though Chamba Cha Kati maintained stable populations of bivalves (300 ind. 100 m^-2^). Notably, Crown-of-Thorns starfish (COTs), a significant coral predator, were recorded at **Viulu** (200 ind. 100 m^-2^) and **Kieti** (100 ind. 100 m^-2^, *See* @fig-inverts-mtwara), representing localized threats to reef recovery.
+
+
+```{r}
+#| eval: true
+#| label: tbl-invertebrate-mtwara1
+#| tbl-cap: "Invertebrate density (individuals per 100 m^2^) by family across the surveyed reefs in Mtwara."
+#| tbl-pos: H
+
+invert_density_restoration |> 
+  select(Site, reef, family = genus, density_100m2) |> 
+  # mutate(density_100m2 = na_if(density_100m2, 0)) |> 
+filter(density_100m2 > 0) |> 
+  group_by(reef, family) |> 
+  summarise(
+    density_mean = median(density_100m2, na.rm = TRUE)
+    # density_sd = sd(density_100m2, na.rm = TRUE)
+    ) |>
+  ungroup() |> 
+  pivot_wider(names_from = reef, values_from = density_mean) |> 
+  # relocate(Membelwa, .after = 2) |> 
+  select(family, `Chamba Cha Kati`, Membelwa, Matenga, Kieti=kieti, Rasmo, Viulu, Nusura, Mmaluko) |>
+  arrange(desc(`Chamba Cha Kati`)) |> 
+  flextable::flextable() |> 
+  flextable::set_header_labels(family = "Family") |> 
+  flextable::colformat_double(digits = 0, na_str = "-") |> 
+  flextable::align(j = 2:4, align = "center", part = "all") |> 
+  flextable::bold(part = "header") |> 
+  # flextable::bg(part = "header", bg = "#004763", i = 2) |> 
+  # flextable::color(part = "header", color = "white", i = 2) |> 
+  flextable::fontsize(size = 11, part = "all") |> 
+  flextable::bg(j = 2:9, bg = scales::col_quantile(palette = "Reds", domain = c(100,1500), na.color = "#cfceceff"), part = "body") |> 
+  flextable::width(j = 1:3, width = .90, unit = "in")  |> 
+  flextable::width(j = 4:9, width = .60, unit = "in")  |> 
+  theme_vanilla() |>
+  flextable::fontsize(size = 11, part = "all") |>
+  flextable::font(fontname = "Alegreya", part = "all") |> 
+  flextable::align(j = 2:9, align = "center", part = "all") |> 
+  flextable::padding(padding = 2.5, part = "all")
+
+```
+
+
+
+```{r}
+#| label: fig-inverts-mtwara-site
+#| fig-cap: "Indicator invertebrate density (individuals per 100 m^2^) by taxon across reefs in Mnazi Bay and Msangamkuu."
+#| fig-height: 5.5
+#| fig-pos: H
+#| eval: false
+
+# ggplot(data = invert_density_restoration, aes(x = reef, y = density_100m2, fill = restoration_role)) +
+#   geom_col(position = "dodge")  +
+#     scale_fill_manual(
+#       values = c(
+#         "Nutrient Cycler"   = "#4393C3",
+#         "Algal Grazer" = "#099b55ff",
+#         "Coral Predator (Threat)" = "#ff0505ff",
+#         "Predator"   = "#F4A582",
+#         "General Invertebrate"   = "#0d91b5ff"
+#       )
+#     ) +
+#   facet_wrap(~genus, scales = "free_y") +
+#   theme_minimal() +
+#   theme(
+#     legend.position = "top",
+#     legend.title = element_text(face = "bold"),
+#     axis.text.x = element_text(angle = 0, hjust = 1),
+#     panel.grid.minor = element_blank()
+#   )+
+#   labs(
+#     # title = "Invertebrate Density and Ecological Roles in Mtwara",
+#     # subtitle = "Higher grazer density (Urchins) can assist in algal control for restoration",
+#     y = "Density (ind. per 100m2)",
+#     x = "Survey Reefs",
+#     fill = "Restoration Role"
+#   )
+
+
+plot_obj = invert_density_restoration |> 
+  mutate(reef = str_replace_all(reef, 'Chamba Cha Kati', 'Kati')) |> 
+  tidyplot(y = reef, x = density_100m2, color = restoration_role) |> 
+  add_sum_bar() |> 
+  adjust_colors(new_colors = c(
+        "Nutrient Cycler"   = "#4393C3",
+        "Algal Grazer" = "#099b55ff",
+        "Coral Predator (Threat)" = "#ff0505ff",
+        "Predator"   = "#F4A582",
+        "General Invertebrate"   = "#0d91b5ff"
+      )) |> 
+  add_data_points_beeswarm(size = 1, alpha = 0.5) |> 
+  adjust_font(fontsize = 12) |>
+  adjust_size(width = 1.5, height = 1.5, unit = 'in')  |> 
+  adjust_legend_title(title = 'Restoration Role', fontsize = 13, face = 'bold') |> 
+  adjust_legend_position(position = c(.80,.15))|>
+  adjust_x_axis_title(title = 'Density (ind./100m2)')|> 
+  remove_padding() |> 
+  remove_y_axis_title() |> 
+  split_plot(by = genus, ncol = 3) 
+
+# ggsave(filename = "invert_density_mtwara_all.pdf", plot = plot_obj)
+
+
+```
+
+![Invertebrate density (individuals per 100 m^2^) by taxon across reefs in Mnazi Bay and Msangamkuu.](invert_density_mtwara_all.pdf){#fig-inverts-mtwara fig-pos="H" width="100%"}
+
+
+# References {#sec-references}

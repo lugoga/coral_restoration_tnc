@@ -1,0 +1,43 @@
+Site,Date,Observer,TransectID,PositionStart_m,PositionEnd_m,InterceptLength_m,SubstrateCode,SpeciesCode,InPark,Notes
+SiteA_Inside,2026-03-15,AB,T01,0.00,0.50,0.50,HC,ACR,TRUE,branching coral
+SiteA_Inside,2026-03-15,AB,T01,0.50,1.80,1.30,AC,,TRUE,turf algae
+SiteA_Inside,2026-03-15,AB,T01,1.80,3.20,1.40,SD,,TRUE,sand
+SiteA_Inside,2026-03-15,AB,T01,3.20,4.50,1.30,HC,PSL,TRUE,massive coral
+SiteA_Inside,2026-03-15,AB,T01,4.50,6.00,1.50,RU,,TRUE,rubble
+SiteA_Inside,2026-03-15,AB,T01,6.00,8.50,2.50,AC,,TRUE,turf algae
+SiteA_Inside,2026-03-15,AB,T01,8.50,10.00,1.50,HC,FUN,TRUE,fungid
+SiteB_Outside,2026-03-15,AB,T02,0.00,0.80,0.80,AC,,FALSE,heavy algae
+SiteB_Outside,2026-03-15,AB,T02,0.80,2.50,1.70,SD,,FALSE,sand
+SiteB_Outside,2026-03-15,AB,T02,2.50,3.80,1.30,AC,,FALSE,turf
+SiteB_Outside,2026-03-15,AB,T02,3.80,4.50,0.70,HC,ACR,FALSE,coral patch
+SiteB_Outside,2026-03-15,AB,T02,4.50,6.00,1.50,RU,,FALSE,rubble
+SiteB_Outside,2026-03-15,AB,T02,6.00,7.20,1.20,AC,,FALSE,turf
+SiteB_Outside,2026-03-15,AB,T02,7.20,9.00,1.80,SD,,FALSE,sand
+SiteB_Outside,2026-03-15,AB,T02,9.00,10.00,1.00,SP,,FALSE,sponge
+SiteC_Inside,2026-03-16,CD,T03,0.00,1.20,1.20,HC,PSL,TRUE,massive
+SiteC_Inside,2026-03-16,CD,T03,1.20,2.50,1.30,HC,ACR,TRUE,branching
+SiteC_Inside,2026-03-16,CD,T03,2.50,4.00,1.50,AC,,TRUE,turf
+SiteC_Inside,2026-03-16,CD,T03,4.00,5.50,1.50,SD,,TRUE,sand
+SiteC_Inside,2026-03-16,CD,T03,5.50,7.00,1.50,HC,FUN,TRUE,fungid
+SiteC_Inside,2026-03-16,CD,T03,7.00,8.50,1.50,RU,,TRUE,rubble
+SiteC_Inside,2026-03-16,CD,T03,8.50,10.00,1.50,AC,,TRUE,turf
+SiteD_Outside,2026-03-16,CD,T04,0.00,2.00,2.00,AC,,FALSE,heavy algae
+SiteD_Outside,2026-03-16,CD,T04,2.00,3.50,1.50,SD,,FALSE,sand
+SiteD_Outside,2026-03-16,CD,T04,3.50,4.20,0.70,HC,ACR,FALSE,small coral
+SiteD_Outside,2026-03-16,CD,T04,4.20,6.00,1.80,RU,,FALSE,rubble
+SiteD_Outside,2026-03-16,CD,T04,6.00,7.50,1.50,AC,,FALSE,turf
+SiteD_Outside,2026-03-16,CD,T04,7.50,9.00,1.50,SD,,FALSE,sand
+SiteD_Outside,2026-03-16,CD,T04,9.00,10.00,1.00,SP,,FALSE,sponge
+SiteE_Inside,2026-03-17,EF,T05,0.00,0.60,0.60,HC,PSL,TRUE,massive
+SiteE_Inside,2026-03-17,EF,T05,0.60,2.00,1.40,AC,,TRUE,turf
+SiteE_Inside,2026-03-17,EF,T05,2.00,3.50,1.50,HC,ACR,TRUE,branching
+SiteE_Inside,2026-03-17,EF,T05,3.50,5.00,1.50,RU,,TRUE,rubble
+SiteE_Inside,2026-03-17,EF,T05,5.00,6.50,1.50,AC,,TRUE,turf
+SiteE_Inside,2026-03-17,EF,T05,6.50,8.00,1.50,SD,,TRUE,sand
+SiteE_Inside,2026-03-17,EF,T05,8.00,10.00,2.00,HC,FUN,TRUE,fungid
+SiteF_Outside,2026-03-17,EF,T06,0.00,3.00,3.00,AC,,FALSE,very heavy algae
+SiteF_Outside,2026-03-17,EF,T06,3.00,5.00,2.00,SD,,FALSE,sand
+SiteF_Outside,2026-03-17,EF,T06,5.00,6.20,1.20,RU,,FALSE,rubble
+SiteF_Outside,2026-03-17,EF,T06,6.20,7.50,1.30,AC,,FALSE,turf
+SiteF_Outside,2026-03-17,EF,T06,7.50,8.80,1.30,SD,,FALSE,sand
+SiteF_Outside,2026-03-17,EF,T06,8.80,10.00,1.20,SP,,FALSE,sponge

@@ -1,0 +1,29 @@
+---
+title: "Makundi"
+format: 
+  revealjs:
+    # theme: solarized
+    chalkboard: true
+    slide-number: true
+embed-resources: false
+---
+
+# Makundi
+
+::: {.incremental}
+- **Kundi 1**: Mgao & Msangamkuu
+- **Kundi 2**: Rivula & Msimbati
+- **Kundi 3**: Mngoji, Mnazi, na Nalingu
+:::
+
+# Maswali ya Mjadala
+
+::: {.incremental}
+ 1. Ukilinganisha na **miaka kumi iliyopita**, hali ya matumbawe kwa sasa ikoje?
+ 2. Ni maeneo gani **yameharibika zaidi** na yapi bado **yana hali nzuri**?
+ 3. Kwenye maeneo yaliyoharibika, **nini hasa kimesababisha** uharibifu huo?
+ 4. Kwa maeneo ambayo bado yana hali nzuri, **nini kimesaidia** yasiathirike?
+5. Je, kuna **juhudi zozote** zinazofanyika kurejesha au kutunza matumbawe?
+
+
+

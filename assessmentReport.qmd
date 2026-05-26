@@ -1,0 +1,210 @@
+---
+title: "Coral Reef Restoration Needs Assessment: Unguja North & Mtwara"
+author: "Assessment Team"
+date: "`r Sys.Date()`"
+format:
+  pdf:
+    toc: true
+    number-sections: true
+    include-in-header: null
+bibliography: references.bib
+link-citations: true
+---
+
+# Introduction
+
+This report documents a coral reef assessment conducted at sites in northern Unguja (Fukuchani, Uroa, Jongowe, Kendwa) and Mtwara (Mnazi Bay, Msanga Mkuu, Mgano). Objectives were to evaluate benthic substrate, fish biomass, juvenile recruit abundance, and key invertebrate indicators to identify priority areas for ecological restoration and management. Some sites fall inside marine management areas (MMAs); others are outside reserve boundaries. Results support prioritised restoration actions and monitoring design.
+
+# Methodology
+
+## Study area and site selection
+
+- Unguja north: Fukuchani, Uroa, Jongowe, Kendwa.  
+- Mtwara: Mnazi Bay, Msanga Mkuu, Mgano.  
+Sites were selected to represent spatial variation in protection status (inside/outside MMAs), exposure, and substrate types.
+
+## Survey design and sampling
+
+- Substrate: 50 m transects using point-intercept method at 0.5 m intervals; benthic categories recorded (hard coral, macroalgae, rubble, sand, others).  
+- Fish biomass: Visual belt transects (30 m × 2 m) for size-class estimates; species-to-length converted to biomass using regional length-weight parameters.  
+- Recruits: 25 × 25 cm quadrats and/or settlement tiles deployed at representative microhabitats to count coral recruits (≤1 cm).  
+- Invertebrates: Belt/quadrat counts for key taxa (urchins, gastropods, giant clams) and targeted surveys for crown-of-thorns and other pests.  
+- Replication: n transects per site (replace with actual n). GPS recorded for each transect; depth recorded.
+
+## Data processing and analyses
+
+- Benthic cover summarised as percent cover per site.  
+- Fish biomass (kg/ha) estimated per transect and aggregated to site means ± SE.  
+- Recruit density presented as recruits m−2.  
+- Invertebrate counts converted to density per m2 or presence/absence as relevant.  
+- Statistical comparisons: non-parametric tests or GLMs as appropriate; community multivariate analyses (nMDS / PERMANOVA) for benthic assemblages.  
+- GIS: site maps and spatial overlays of MMAs produced in QGIS / R (sf).
+
+# Results
+
+- Refer to maps and figures for spatial context (Figure @fig:map). Tables and figures are cross-referenced throughout.
+
+![Study area and site locations (Unguja north & Mtwara).](figures/study_area_map.png){#fig:map width="80%"}
+
+## Unguja north
+
+### Substrate
+
+Table: (tbl:substrate_unguja) Benthic substrate composition (%) — Unguja north sites.
+
+| Substrate category | Fukuchani | Uroa | Jongowe | Kendwa |
+|---|---:|---:|---:|---:|
+| Hard coral (%) | [replace] | [replace] | [replace] | [replace] |
+| Macroalgae (%) | [replace] | [replace] | [replace] | [replace] |
+| Rubble (%) | [replace] | [replace] | [replace] | [replace] |
+| Sand (%) | [replace] | [replace] | [replace] | [replace] |
+
+Narrative: Describe observed live coral cover gradients, dominant morphologies, and presence of framework-building taxa. See Table @tbl:substrate_unguja and Figure @fig:substrate_photo.
+
+![Representative substrate photograph — Unguja (example).](figures/unguja_substrate_photo.png){#fig:substrate_photo width="60%"}
+
+### Fish biomass
+
+Table: (tbl:fish_unguja) Fish biomass (kg·ha−1) summary — Unguja north.
+
+| Metric | Fukuchani | Uroa | Jongowe | Kendwa |
+|---|---:|---:|---:|---:|
+| Mean biomass (kg·ha−1) | [replace] | [replace] | [replace] | [replace] |
+| Herbivore biomass (kg·ha−1) | [replace] | [replace] | [replace] | [replace] |
+| Piscivore biomass (kg·ha−1) | [replace] | [replace] | [replace] | [replace] |
+
+Narrative: Interpret fish assemblage structure, key commercially important species, and observed size distributions. See Table @tbl:fish_unguja and Figure @fig:fish_size_dist.
+
+![Fish size-frequency example (Unguja).](figures/unguja_fish_size.png){#fig:fish_size_dist width="60%"}
+
+### Recruits
+
+Table: (tbl:recruits_unguja) Recruit density (recruits·m−2) — Unguja north.
+
+| Site | Mean recruits m−2 | SE |
+|---|---:|---:|
+| Fukuchani | [replace] | [replace] |
+| Uroa | [replace] | [replace] |
+| Jongowe | [replace] | [replace] |
+| Kendwa | [replace] | [replace] |
+
+Narrative: Note patterns in recruitment and potential substrate limitations or algal competition.
+
+### Invertebrates
+
+Table: (tbl:inverts_unguja) Key invertebrate indicators — Unguja north.
+
+| Taxon / Indicator | Fukuchani | Uroa | Jongowe | Kendwa |
+|---|---:|---:|---:|---:|
+| Diadema spp. density (m−2) | [replace] | [replace] | [replace] | [replace] |
+| Predatory gastropods | [replace] | [replace] | [replace] | [replace] |
+| Other pests (e.g., Acanthaster) | [present/absent] | [replace] | [replace] | [replace] |
+
+Narrative: Implications for grazing pressure, bioerosion, and restoration risk.
+
+## Mtwara
+
+### Substrate
+
+Table: (tbl:substrate_mtwara) Benthic substrate composition (%) — Mtwara sites.
+
+| Substrate category | Mnazi Bay | Msanga Mkuu | Mgano |
+|---|---:|---:|---:|
+| Hard coral (%) | [replace] | [replace] | [replace] |
+| Macroalgae (%) | [replace] | [replace] | [replace] |
+| Rubble (%) | [replace] | [replace] | [replace] |
+| Sand (%) | [replace] | [replace] | [replace] |
+
+Narrative: Compare with Unguja north and note any protection-status effects. See Table @tbl:substrate_mtwara.
+
+### Fish biomass
+
+Table: (tbl:fish_mtwara) Fish biomass (kg·ha−1) summary — Mtwara.
+
+| Metric | Mnazi Bay | Msanga Mkuu | Mgano |
+|---|---:|---:|---:|
+| Mean biomass (kg·ha−1) | [replace] | [replace] | [replace] |
+| Herbivore biomass (kg·ha−1) | [replace] | [replace] | [replace] |
+| Piscivore biomass (kg·ha−1) | [replace] | [replace] | [replace] |
+
+Narrative: Highlight notable biomass hotspots or deficits. See Figure @fig:fish_map.
+
+![Fish biomass distribution (Mtwara example).](figures/mtwara_fish_map.png){#fig:fish_map width="70%"}
+
+### Recruits
+
+Table: (tbl:recruits_mtwara) Recruit density (recruits·m−2) — Mtwara.
+
+| Site | Mean recruits m−2 | SE |
+|---|---:|---:|
+| Mnazi Bay | [replace] | [replace] |
+| Msanga Mkuu | [replace] | [replace] |
+| Mgano | [replace] | [replace] |
+
+Narrative: Discuss potential larval supply and local retention inferences.
+
+### Invertebrates
+
+Table: (tbl:inverts_mtwara) Key invertebrate indicators — Mtwara.
+
+| Taxon / Indicator | Mnazi Bay | Msanga Mkuu | Mgano |
+|---|---:|---:|---:|
+| Diadema spp. density (m−2) | [replace] | [replace] | [replace] |
+| Predatory gastropods | [replace] | [replace] | [replace] |
+| Other pests | [replace] | [replace] | [replace] |
+
+Narrative: Management implications for grazing and reef resilience.
+
+# Synthesis
+
+- Cross-site comparison: Summarise major contrasts between Unguja north and Mtwara across the four metrics (substrate, fish biomass, recruits, invertebrates). Reference key tables and figures (e.g., Tables @tbl:substrate_unguja, @tbl:substrate_mtwara; Figures @fig:map, @fig:concept).  
+- Restoration priority: propose a prioritisation matrix (see Conceptual decision framework — Figure @fig:concept). Criteria: live coral cover, recruit supply, herbivore biomass, presence of pests, and protection status.  
+- Monitoring recommendations: standardised permanent transects, settlement tile arrays, and fish belt-transect repeat surveys every 12 months for the first 3–5 years.  
+- Management recommendations: targeted herbivore protection or reintroductions, active coral propagation in low-recruit areas, removal/control of pests where present, engagement with MMA managers and stakeholders.
+
+![Conceptual decision framework for prioritising restoration actions.](figures/conceptual_diagram.png){#fig:concept width="70%"}
+
+# Recommendations (concise)
+
+1. Prioritise sites with low coral cover but high recruit supply and adequate herbivore biomass for passive recovery.  
+2. Deploy active restoration (outplanting) at sites with low recruits and stable substrate when herbivory/predation are controlled.  
+3. Strengthen MPA enforcement where low biomass/persistent fishing reduces resilience.  
+4. Implement a standardised monitoring protocol; store raw data and metadata in a data repository (see Appendix: Data index).
+
+# Limitations
+
+- Temporal scope and single-season sampling limits inference on interannual variability.  
+- Replace all placeholder values with processed field data before final submission.
+
+# References
+
+(Managed via bibliography file referenced in the YAML — `references.bib`. Example entries to include:)
+
+- Mumby, P. J., & Harborne, A. R. (2010). Marine reserves enhance the resilience of coral reefs to climatic disturbance. Biological Reviews, 85(3), 659–671.  
+- Hill, J., & Wilkinson, C. (2004). Methods for ecological monitoring of coral reefs. Australian Institute of Marine Science.
+
+# Appendix
+
+## A. Data index and file map
+
+- data/reef_substrate.csv — point-intercept records (transect, position, category)  
+- data/fish_transects.csv — fish counts and lengths per transect  
+- data/recruits.csv — quadrat/tile counts per deployment  
+- figures/study_area_map.png — site map (use georeferenced shapefiles)  
+- figures/* — photos, size-frequency plots, conceptual diagram  
+- scripts/analysis.R — R scripts used for analysis (document package versions and seed)
+
+## B. Survey metadata template
+
+- Investigator(s), affiliation, contact  
+- GPS coordinates (WGS84) for each transect start/end  
+- Date, time, tidal state, sea conditions, visibility, depth range  
+- Equipment and calibrations
+
+## C. Glossary / Index
+
+- MPA / MMA — Marine Protected Area / Marine Management Area  
+- Recruit — coral individual ≤ 1 cm diameter (or define as used)  
+- Biomass — estimated fish weight using regional length–weight parameters
+
+  (Add further index entries as needed.)
